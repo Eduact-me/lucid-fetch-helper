@@ -1,6 +1,6 @@
 {
   "name": "lucid-fetch-helper",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "get all data for certain database model with pagination ,filtration ,date range ,sort by column and search query all in one request",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
