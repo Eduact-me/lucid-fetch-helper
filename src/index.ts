@@ -1,5 +1,5 @@
 import { _omit } from './helpers';
-import dayjs from 'dayjs';
+import * as dayjs from 'dayjs';
 
 export type OrderByType = {
   field: string;
