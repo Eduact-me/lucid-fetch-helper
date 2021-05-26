@@ -1,0 +1,20 @@
+{
+  "name": "lucid-fetch-helper",
+  "version": "1.0.0",
+  "description": "get all data for certain database model with pagination ,filtration ,date range ,sort by column and search query all in one request",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "lucid",
+    "adonis",
+    "helper",
+    "orm"
+  ],
+  "author": "Mohammed Essam",
+  "license": "ISC",
+  "dependencies": {
+    "dayjs": "^1.10.4"
+  }
+}
