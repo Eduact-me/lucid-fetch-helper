@@ -8,6 +8,7 @@ export type OrderByType = {
 export type PaginationType = { page: number; perPage: number };
 export type SearchByType = { field: string; query: string };
 export type DateRangeType = { from: string; to: string };
+export type ColumnsSettings = { customColumnsSelectionList: string[]; method: 'exclude' | 'include' };
 type ReturnType = {
   meta: {
     page: number;
@@ -20,17 +21,21 @@ type ReturnType = {
 };
 export default async function fetch(
   Model: any,
+  { customColumnsSelectionList = ['*'], method = 'include' }: ColumnsSettings,
   { page = 1, perPage = 15 }: PaginationType,
   orderBy?: OrderByType,
   searchQuery = '',
   filters?: any[],
   dateRange?: DateRangeType,
-  customColumnsSelectionList = ['*'],
 ): Promise<ReturnType> {
   if (!Model) throw new Error('Model is required');
   const columnsToBeSearched = _omit(Model.$keys.attributesToColumns.all(), ['id', 'updatedAt', 'createdAt']);
+  const selectedColumns =
+    method === 'exclude'
+      ? Object.keys(_omit(Model.$keys.columnsToAttributes.all(), customColumnsSelectionList))
+      : customColumnsSelectionList;
 
-  const query = Model.query().select(customColumnsSelectionList);
+  const query = Model.query().select(selectedColumns);
   const filtrationQuery = Model.query().select('*');
 
   if (dateRange?.from) {
