@@ -28,7 +28,7 @@ export default async function fetch(
   customColumnsSelectionList = ['*'],
 ): Promise<ReturnType> {
   if (!Model) throw new Error('Model is required');
-  const columnsToBeSearched = _omit(Model.$keys.attributesToColumns.all(), ['id', 'uuid', 'updatedAt', 'createdAt']);
+  const columnsToBeSearched = _omit(Model.$keys.attributesToColumns.all(), ['id', 'updatedAt', 'createdAt']);
 
   const query = Model.query().select(customColumnsSelectionList);
   const filtrationQuery = Model.query().select('*');
@@ -48,18 +48,18 @@ export default async function fetch(
     query.from(filtrationQuery.as('f1'));
   }
 
-  if (typeof searchQuery === 'string' && searchQuery.trim() !== '') {
-    Object.keys(columnsToBeSearched).forEach((column) => query.orWhere(column, 'ILIKE', `%${searchQuery}%`));
+  if (searchQuery && searchQuery.trim() !== '') {
+    Object.values(columnsToBeSearched).forEach((column) => query.orWhere(column, 'ILIKE', `%${searchQuery}%`));
   }
 
   query
-    .offset(page)
     .limit(perPage)
+    .offset(page <= 0 ? 0 : page - 1)
     .orderBy(orderBy?.field || 'id', orderBy?.direction || 'asc');
 
   const data = await query.exec();
   const [count] = await Model.query().count('* as total');
-  // const count =
+
   return {
     meta: {
       page,
