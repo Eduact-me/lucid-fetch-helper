@@ -10,7 +10,7 @@ or using yarn
 
 ## Usage
 
-```
+```javascript
 import fetch from "lucid-fetch-helper"
 
 const response = await fetch(LucidModel, pagination, orderBy, searchQuery, filters, dateRange, customColumnsSelectionList)
