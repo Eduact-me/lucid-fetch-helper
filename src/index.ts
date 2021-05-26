@@ -27,9 +27,15 @@ export default async function fetch(
   searchQuery = '',
   filters?: any[],
   dateRange?: DateRangeType,
+  excludedSearchColumns?: string[],
 ): Promise<ReturnType> {
   if (!Model) throw new Error('Model is required');
-  const columnsToBeSearched = _omit(Model.$keys.attributesToColumns.all(), ['id', 'updatedAt', 'createdAt']);
+  const columnsToBeSearched = _omit(Model.$keys.columnsToAttributes.all(), [
+    'id',
+    'updated_at',
+    'created_at',
+    ...(excludedSearchColumns || []),
+  ]);
   const selectedColumns =
     method === 'exclude'
       ? Object.keys(_omit(Model.$keys.columnsToAttributes.all(), customColumnsSelectionList))
