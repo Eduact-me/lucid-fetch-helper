@@ -69,7 +69,7 @@ export default async function fetch(
     .orderBy(orderBy?.field || 'id', orderBy?.direction || 'asc');
 
   const data = await query.exec();
-  const [count] = await Model.query().count('* as total');
+  const [modelData] = await Model.query().count('* as total');
 
   return {
     meta: {
@@ -77,7 +77,7 @@ export default async function fetch(
       perPage,
       lastPage: Math.ceil(data.length / perPage),
       found: data.length,
-      total: Number(count.total),
+      total: Number(modelData.$extras.total),
     },
     data,
   };
