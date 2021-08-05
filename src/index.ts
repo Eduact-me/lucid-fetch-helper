@@ -8,7 +8,10 @@ export type OrderByType = {
 export type PaginationType = { page: number; perPage: number };
 export type SearchByType = { field: string; query: string };
 export type DateRangeType = { from: string; to: string };
-export type ColumnsSettings = { customColumnsSelectionList: string[]; method: 'exclude' | 'include' };
+export type ColumnsSettings = {
+  customColumnsSelectionList: string[];
+  method: 'exclude' | 'include';
+};
 type ReturnType = {
   meta: {
     page: number;
@@ -19,16 +22,29 @@ type ReturnType = {
   };
   data: any[];
 };
-export default async function fetch(
-  Model: any,
-  { customColumnsSelectionList = ['*'], method = 'include' }: ColumnsSettings,
-  { page = 1, perPage = 15 }: PaginationType,
-  orderBy?: OrderByType,
+interface Params {
+  Model: any;
+  columnsSettings?: ColumnsSettings;
+  pagination?: PaginationType;
+  orderBy?: OrderByType;
+  searchQuery?: string;
+  filters?: any[];
+  dateRange?: DateRangeType;
+  excludedSearchColumns?: string[];
+  callback?(query: any): any;
+}
+
+export default async function fetch({
+  Model,
+  columnsSettings = { customColumnsSelectionList: ['*'], method: 'include' },
+  pagination = { page: 1, perPage: 15 },
+  orderBy,
   searchQuery = '',
-  filters?: any[],
-  dateRange?: DateRangeType,
-  excludedSearchColumns?: string[],
-): Promise<ReturnType> {
+  dateRange = { from: '', to: '' },
+  excludedSearchColumns = [],
+  filters = [],
+  callback = () => {},
+}: Params): Promise<ReturnType> {
   if (!Model) throw new Error('Model is required');
   const columnsToBeSearched = _omit(Model.$keys.columnsToAttributes.all(), [
     'id',
@@ -37,9 +53,9 @@ export default async function fetch(
     ...(excludedSearchColumns || []),
   ]);
   const selectedColumns =
-    method === 'exclude'
-      ? Object.keys(_omit(Model.$keys.columnsToAttributes.all(), customColumnsSelectionList))
-      : customColumnsSelectionList;
+    columnsSettings.method === 'exclude'
+      ? Object.keys(_omit(Model.$keys.columnsToAttributes.all(), columnsSettings.customColumnsSelectionList))
+      : columnsSettings.customColumnsSelectionList;
 
   const query = Model.query().select(selectedColumns);
   const filtrationQuery = Model.query().select('*');
@@ -55,27 +71,27 @@ export default async function fetch(
       const [key, value] = Object.entries(filter)[0];
       filtrationQuery.andWhere(key, '=', String(value));
     });
-
-    query.from(filtrationQuery.as('f1'));
   }
+  query.from(filtrationQuery.as('f1'));
 
   if (searchQuery && searchQuery.trim() !== '') {
     Object.values(columnsToBeSearched).forEach((column) => query.orWhere(column, 'ILIKE', `%${searchQuery}%`));
   }
 
+  callback(query);
+
   query
-    .limit(perPage)
-    .offset(page <= 0 ? 0 : page - 1)
+    .limit(pagination.perPage)
+    .offset(pagination.page <= 0 ? 0 : pagination.page - 1)
     .orderBy(orderBy?.field || 'id', orderBy?.direction || 'asc');
 
   const data = await query.exec();
   const [modelData] = await Model.query().count('* as total');
-
   return {
     meta: {
-      page,
-      perPage,
-      lastPage: Math.ceil(data.length / perPage),
+      page: pagination.page,
+      perPage: pagination.perPage,
+      lastPage: Math.ceil(Number(modelData.$extras.total) / pagination.perPage),
       found: data.length,
       total: Number(modelData.$extras.total),
     },
