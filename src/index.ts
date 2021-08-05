@@ -43,7 +43,9 @@ export default async function fetch({
   dateRange = { from: '', to: '' },
   excludedSearchColumns = [],
   filters = [],
-  callback = () => {},
+  callback = () => {
+    //
+  },
 }: Params): Promise<ReturnType> {
   if (!Model) throw new Error('Model is required');
   const columnsToBeSearched = _omit(Model.$keys.columnsToAttributes.all(), [
